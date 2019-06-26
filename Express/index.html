@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<div class="container">
+    <br>
+    <div class="jumbotron">
+        <h1 class="display-4">Send Message</h1>
+        <br>
+        <input id="name" class="form-control" placeholder="Name" />
+        <br>
+        <textarea id="message" class="form-control" placeholder="Message"></textarea>
+        <br>
+        <button id="send" class="btn btn-success">Send</button>
+        <button id="clear" class="btn btn-success">Clear Messages</button>
+    </div>
+    <div id="messages">
+
+    </div>
+</div>
+<script>
+    var socket = io();
+    //this is a shortcut for $(document).ready(()=>{...})
+    //default syntax is $(selector).action()
+    $(() => {
+        getMessages();
+    })
+
+    $("#send").click(() => {
+        let message = { name: $("#name").val(), message: $("#message").val() };
+        postMessages(message);
+    });
+
+    socket.on('message', addMessages);
+    socket.on('refresh', ()=>{
+        $("#messages")[0].innerHTML="";
+        getMessages();
+    });
+
+    $("#clear").click(()=> {
+        $.get('http://localhost:3000/cleanMessages', (data) =>{
+            console.log("Status: " + data);
+        });
+    });
+
+    function addMessages(message) {
+        $("#messages").append(`<h4> ${message.name} </h4> <p> ${message.message} </p>`)
+    }
+
+    function getMessages() {
+        $.get('http://localhost:3000/messages', (data) => {
+            console.log(data);
+            data.forEach(addMessages);
+        })
+    }
+
+    function postMessages(message) {
+        $.post('http://localhost:3000/messages', message);
+    }
+
+</script>
